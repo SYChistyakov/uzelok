@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P2P WebRTC Video Chat</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <div class="video-container">
+        <video id="localVideo" autoplay playsinline muted></video>
+        <video id="remoteVideo" autoplay playsinline></video>
+    </div>
+
+    <!-- Floating Action Buttons -->
+    <div class="floating-controls">
+        <button class="fab" onclick="openPopup('devicePopup')">🎥</button>
+        <button class="fab" onclick="openPopup('signalingPopup')">🤝</button>
+    </div>
+
+    <!-- Device Selection Popup -->
+    <div id="devicePopup" class="popup">
+        <div class="popup-content">
+            <h3>Select Devices</h3>
+            <label>Microphone:</label>
+            <select id="audioSource"></select>
+
+            <label>Camera:</label>
+            <select id="videoSource"></select>
+
+            <button onclick="startCall()">Start Call</button>
+            <button onclick="closePopup('devicePopup')">Close</button>
+        </div>
+    </div>
+
+    <!-- Signaling Popup -->
+    <div id="signalingPopup" class="popup">
+        <div class="popup-content">
+            <h3>Signaling</h3>
+            <textarea id="signalingBox" placeholder="Paste offer/answer"></textarea>
+            <button onclick="createOffer()">📤 Generate Offer</button>
+            <button onclick="createAnswer()">📥 Generate Answer</button>
+            <button onclick="acceptAnswer()">🤝 Accept Answer</button>
+            <button onclick="generateICEs()">🧊 Generate ICEs</button>
+            <button onclick="acceptICEs()">🧊 Accept ICEs</button>
+            <button onclick="copyToClipboard()">📋 Copy</button>
+            <button onclick="pasteFromClipboard()">📥 Paste</button>
+            <button onclick="closePopup('signalingPopup')">Close</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
