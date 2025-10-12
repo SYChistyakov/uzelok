@@ -1,88 +1,177 @@
-/* General Styles */
+/* === General Cyberpunk Styles === */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
 body {
-    font-family: Arial, sans-serif;
-    background-color: #111;
-    color: white;
-    text-align: center;
-    margin: 0;
-    padding: 0;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+  font-family: 'Orbitron', sans-serif;
+  background: radial-gradient(circle at 50% 30%, #0b0f1a, #050608 80%);
+  color: #00eaff;
+  text-align: center;
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
-/* Video Container */
+/* === Video Container === */
 .video-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    width: 90%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 40px;
+  width: 90%;
+  position: relative;
 }
 
 video {
-    width: 50%;
-    max-width: 600px;
-    height: auto;
-    border-radius: 10px;
-    border: 3px solid #4CAF50;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  width: 45%;
+  max-width: 600px;
+  height: auto;
+  border-radius: 12px;
+  border: 2px solid #00eaff;
+  box-shadow:
+    0 0 15px #00eaff,
+    inset 0 0 15px #00eaff;
+  transition: all 0.4s ease-in-out;
 }
 
-/* Floating Buttons */
+video:hover {
+  transform: scale(1.02);
+  box-shadow:
+    0 0 25px #ff00ff,
+    inset 0 0 15px #00ffff;
+}
+
+/* === Floating Controls === */
 .floating-controls {
-    position: fixed;
-    bottom: 20px;
-    display: flex;
-    gap: 10px;
+  position: fixed;
+  bottom: 30px;
+  display: flex;
+  gap: 20px;
+  z-index: 10;
 }
 
 .fab {
-    width: 50px;
-    height: 50px;
-    background: #4CAF50;
-    border: none;
-    border-radius: 50%;
-    font-size: 24px;
-    color: white;
-    cursor: pointer;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    transition: 0.3s;
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #ff00ff, #00eaff);
+  border: none;
+  border-radius: 50%;
+  font-size: 26px;
+  color: #fff;
+  cursor: pointer;
+  box-shadow:
+    0 0 20px #00eaff,
+    0 0 10px #ff00ff;
+  transition: 0.3s ease-in-out;
 }
 
 .fab:hover {
-    background: #45a049;
+  transform: scale(1.15) rotate(10deg);
+  box-shadow:
+    0 0 30px #00ffff,
+    0 0 15px #ff00ff;
 }
 
-/* Popup Styles */
+/* === Popup Windows === */
 .popup {
-    display: none;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: white;
-    color: black;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    text-align: center;
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(15, 15, 25, 0.95);
+  color: #00eaff;
+  padding: 25px;
+  border-radius: 12px;
+  text-align: center;
+  min-width: 300px;
+  backdrop-filter: blur(10px);
+  z-index: 100;
 }
 
-.popup-content {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+.popup-content h3 {
+  margin-bottom: 10px;
+  text-shadow: 0 0 10px #00ffff;
+}
+
+.popup select {
+  background: rgba(0, 0, 0, 0.8);
+  color: #00ffff;
+  border: 1px solid #00eaff;
+  padding: 8px;
+  border-radius: 5px;
+  font-size: 14px;
+  outline: none;
+}
+
+.popup-buttons {
+  margin-top: 15px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
 }
 
 .popup button {
-    padding: 8px;
-    font-size: 16px;
-    cursor: pointer;
-    background: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 5px;
+  padding: 10px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  background: linear-gradient(90deg, #00eaff, #ff00ff);
+  color: black;
+  border: none;
+  border-radius: 5px;
+  box-shadow: 0 0 10px #00ffff;
+  transition: 0.3s ease-in-out;
+}
+
+.popup button:hover {
+  background: linear-gradient(90deg, #ff00ff, #00eaff);
+  box-shadow: 0 0 20px #ff00ff;
+}
+
+/* === Neon Borders === */
+.neon-border {
+  border: 2px solid #00eaff;
+  box-shadow:
+    0 0 15px #00eaff,
+    inset 0 0 10px #ff00ff;
+  animation: pulse-border 2.5s infinite alternate;
+}
+
+@keyframes pulse-border {
+  from {
+    box-shadow:
+      0 0 10px #00ffff,
+      inset 0 0 5px #ff00ff;
+  }
+  to {
+    box-shadow:
+      0 0 20px #ff00ff,
+      inset 0 0 10px #00ffff;
+  }
+}
+
+/* === QR Container === */
+#qrContainer {
+  display: flex;
+  justify-content: center;
+  margin: 15px 0;
+}
+
+#qrCanvas {
+  border: 1px solid #00eaff;
+  box-shadow: 0 0 10px #00ffff;
+}
+
+/* === Scrollbar (for Chrome) === */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #00ffff, #ff00ff);
+  border-radius: 10px;
 }

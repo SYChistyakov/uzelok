@@ -2,68 +2,70 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>P2P WebRTC Video Chat</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>P2P WebRTC Video Chat</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
 
-    <div class="video-container">
-        <video id="localVideo" autoplay playsinline muted></video>
-        <video id="remoteVideo" autoplay playsinline muted></video>
-    </div>
+  <div class="video-container">
+    <video id="localVideo" autoplay playsinline muted></video>
+    <video id="remoteVideo" autoplay playsinline muted></video>
+  </div>
 
-    <!-- Floating Action Buttons -->
-    <div class="floating-controls">
-        <button class="fab" onclick="openCamPopup()">📷</button>
-        <button class="fab" onclick="openMicPopup()">🎤</button>
-        <button class="fab" onclick="openPopup('signalingPopup')">🤝</button>
-    </div>
+  <!-- Floating Action Buttons -->
+  <div class="floating-controls">
+    <button class="fab" onclick="openCamPopup()">📷</button>
+    <button class="fab" onclick="openMicPopup()">🎤</button>
+    <button class="fab" onclick="openPopup('signalingPopup')">🤝</button>
+  </div>
 
-    <!-- Camera Selection Popup -->
-    <div id="camPopup" class="popup">
-        <div class="popup-content">
-            <h3>Select Camera</h3>
-            <select id="camSource"></select>
-            <div style="margin-top:8px">
-                <button onclick="enableCameraSelected()">Apply</button>
-                <button onclick="closePopup('camPopup')">Close</button>
-            </div>
-        </div>
+  <!-- Camera Selection Popup -->
+  <div id="camPopup" class="popup neon-border">
+    <div class="popup-content">
+      <h3>Select Camera</h3>
+      <select id="camSource"></select>
+      <div class="popup-buttons">
+        <button onclick="enableCameraSelected()">Apply</button>
+        <button onclick="closePopup('camPopup')">Close</button>
+      </div>
     </div>
+  </div>
 
-    <!-- Microphone Selection Popup -->
-    <div id="micPopup" class="popup">
-        <div class="popup-content">
-            <h3>Select Microphone</h3>
-            <select id="micSource"></select>
-            <div style="margin-top:8px">
-                <button onclick="enableMicSelected()">Apply</button>
-                <button onclick="closePopup('micPopup')">Close</button>
-            </div>
-        </div>
+  <!-- Microphone Selection Popup -->
+  <div id="micPopup" class="popup neon-border">
+    <div class="popup-content">
+      <h3>Select Microphone</h3>
+      <select id="micSource"></select>
+      <div class="popup-buttons">
+        <button onclick="enableMicSelected()">Apply</button>
+        <button onclick="closePopup('micPopup')">Close</button>
+      </div>
     </div>
+  </div>
 
-    <!-- Signaling Popup -->
-    <div id="signalingPopup" class="popup">
-        <div class="popup-content">
-            <h3>Signaling</h3>
-            <div id="qrContainer">
-                <canvas id="qrCanvas"></canvas>
-            </div>
-            <button onclick="createOffer()">📤 Generate Offer</button>
-            <button onclick="createAnswer()">📥 Generate Answer</button>
-            <button onclick="acceptAnswer()">🤝 Accept Answer</button>
-            <button onclick="copyToClipboard()">📋 Copy</button>
-            <button onclick="pasteFromClipboard()">📥 Paste</button>
-            <button onclick="closePopup('signalingPopup')">Close</button>
-        </div>
+  <!-- Signaling Popup -->
+  <div id="signalingPopup" class="popup neon-border">
+    <div class="popup-content">
+      <h3>Signaling</h3>
+      <div id="qrContainer">
+        <canvas id="qrCanvas"></canvas>
+      </div>
+      <div class="popup-buttons">
+        <button onclick="createOffer()">📤 Generate Offer</button>
+        <button onclick="createAnswer()">📥 Generate Answer</button>
+        <button onclick="acceptAnswer()">🤝 Accept Answer</button>
+        <button onclick="copyToClipboard()">📋 Copy</button>
+        <button onclick="pasteFromClipboard()">📥 Paste</button>
+        <button onclick="closePopup('signalingPopup')">Close</button>
+      </div>
     </div>
+  </div>
 
-    <script src="codec.js" defer></script>
-    <script src="script.js" defer></script>
+  <script src="codec.js" defer></script>
+  <script src="script.js" defer></script>
 
 </body>
 
