@@ -12,27 +12,37 @@
 
     <div class="video-container">
         <video id="localVideo" autoplay playsinline muted></video>
-        <video id="remoteVideo" autoplay playsinline></video>
+        <video id="remoteVideo" autoplay playsinline muted></video>
     </div>
 
     <!-- Floating Action Buttons -->
     <div class="floating-controls">
-        <button class="fab" onclick="openPopup('devicePopup')">🎥</button>
+        <button class="fab" onclick="openCamPopup()">📷</button>
+        <button class="fab" onclick="openMicPopup()">🎤</button>
         <button class="fab" onclick="openPopup('signalingPopup')">🤝</button>
     </div>
 
-    <!-- Device Selection Popup -->
-    <div id="devicePopup" class="popup">
+    <!-- Camera Selection Popup -->
+    <div id="camPopup" class="popup">
         <div class="popup-content">
-            <h3>Select Devices</h3>
-            <label>Microphone:</label>
-            <select id="audioSource"></select>
+            <h3>Select Camera</h3>
+            <select id="camSource"></select>
+            <div style="margin-top:8px">
+                <button onclick="enableCameraSelected()">Apply</button>
+                <button onclick="closePopup('camPopup')">Close</button>
+            </div>
+        </div>
+    </div>
 
-            <label>Camera:</label>
-            <select id="videoSource"></select>
-
-            <button onclick="startCall()">Start Call</button>
-            <button onclick="closePopup('devicePopup')">Close</button>
+    <!-- Microphone Selection Popup -->
+    <div id="micPopup" class="popup">
+        <div class="popup-content">
+            <h3>Select Microphone</h3>
+            <select id="micSource"></select>
+            <div style="margin-top:8px">
+                <button onclick="enableMicSelected()">Apply</button>
+                <button onclick="closePopup('micPopup')">Close</button>
+            </div>
         </div>
     </div>
 
@@ -52,8 +62,8 @@
         </div>
     </div>
 
-    <script src="codec.js"></script>
-    <script src="script.js"></script>
+    <script src="codec.js" defer></script>
+    <script src="script.js" defer></script>
 
 </body>
 

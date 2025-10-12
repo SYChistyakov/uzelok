@@ -1,5 +1,6 @@
 let peerConnection;
 let localStream;
+let remoteStream;
 let iceCandidates = [];
 const iceServers = [{ urls: "stun:stun.l.google.com:19302" }];
 const localVideo = document.getElementById("localVideo");
@@ -16,44 +17,177 @@ function closePopup(id) {
     document.getElementById(id).style.display = "none";
 }
 
-// Get available devices (Microphone & Camera)
-async function getMediaDevices() {
+async function populateCamSelect() {
     const devices = await navigator.mediaDevices.enumerateDevices();
-    const audioSelect = document.getElementById("audioSource");
-    const videoSelect = document.getElementById("videoSource");
-
-    audioSelect.innerHTML = "";
-    videoSelect.innerHTML = "";
-
-    devices.forEach(device => {
-        if (device.kind === "audioinput") {
-            let option = document.createElement("option");
-            option.value = device.deviceId;
-            option.text = device.label || `Microphone ${audioSelect.length + 1}`;
-            audioSelect.appendChild(option);
-        } else if (device.kind === "videoinput") {
-            let option = document.createElement("option");
-            option.value = device.deviceId;
-            option.text = device.label || `Camera ${videoSelect.length + 1}`;
-            videoSelect.appendChild(option);
+    const select = document.getElementById('camSource');
+    if (!select) return;
+    select.innerHTML = '';
+    // First option to disable video
+    const none = document.createElement('option');
+    none.value = '';
+    none.text = 'Disable video';
+    select.appendChild(none);
+    devices.forEach(d => {
+        if (d.kind === 'videoinput') {
+            const o = document.createElement('option');
+            o.value = d.deviceId;
+            o.text = d.label || `Camera ${select.length}`;
+            select.appendChild(o);
         }
     });
 }
-getMediaDevices();
 
-// Start Call with Selected Devices
-async function startCall() {
-    const audioSource = document.getElementById("audioSource").value;
-    const videoSource = document.getElementById("videoSource").value;
+async function populateMicSelect() {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const select = document.getElementById('micSource');
+    if (!select) return;
+    select.innerHTML = '';
+    // First option to disable audio
+    const none = document.createElement('option');
+    none.value = '';
+    none.text = 'Disable microphone';
+    select.appendChild(none);
+    devices.forEach(d => {
+        if (d.kind === 'audioinput') {
+            const o = document.createElement('option');
+            o.value = d.deviceId;
+            o.text = d.label || `Microphone ${select.length}`;
+            select.appendChild(o);
+        }
+    });
+}
 
+async function openCamPopup() {
+    const tempStream = await navigator.mediaDevices.getUserMedia({ video: true });
+    tempStream.getTracks().forEach(track => track.stop()); // ✅ release camera
+    await populateCamSelect();
+    openPopup('camPopup');
+}
+
+async function openMicPopup() {
+    const tempStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    tempStream.getTracks().forEach(track => track.stop()); // ✅ release mic
+    await populateMicSelect();
+    openPopup('micPopup');
+}
+
+async function disableCamera() {
+    if (!localStream) return;
+
+    const newTrack = await createBlackVideoTrack();
+
+    localStream.getVideoTracks().forEach(track => {
+        track.stop();
+        localStream.removeTrack(track);
+    });
+
+    localStream.addTrack(newTrack);
+}
+
+async function enableCamera(deviceId) {
+    // Try to get the video stream from the selected camera
+    let stream;
+    try {
+        stream = await navigator.mediaDevices.getUserMedia({
+            video: { deviceId: { exact: deviceId } }
+        });
+    } catch (err) {
+        alert("Unable to access camera: " + err.message);
+        return;
+    }
+    const newTrack = stream.getVideoTracks()[0];
+
+    // Remove old video tracks
+    localStream.getVideoTracks().forEach(track => {
+        track.stop();
+        localStream.removeTrack(track);
+    });
+
+    // Add the selected camera track
+    localStream.addTrack(newTrack);
+
+    // Replace outgoing video track in peerConnection, if any
+    if (peerConnection) {
+        const sender = peerConnection.getSenders().find(s => s.track && s.track.kind === 'video');
+        await sender.replaceTrack(newTrack);
+        try { if (sender.requestKeyFrame) await sender.requestKeyFrame(); } catch (e) {}
+    }
+}
+
+async function enableCameraSelected() {
+    const select = document.getElementById('camSource');
+    const deviceId = select && select.value ? select.value : '';
+    if (!deviceId) {
+        await disableCamera();
+    } else {
+        await enableCamera(deviceId);
+    }
+    closePopup('camPopup');
+}
+
+async function disableMic() {
+    if (!localStream) return;
+
+    const newTrack = createSilentAudioTrack();
+
+    localStream.getAudioTracks().forEach(track => {
+        track.stop();
+        localStream.removeTrack(track);
+    });
+
+    localStream.addTrack(newTrack);
+}
+
+async function enableMic(deviceId) {
     const constraints = {
-        video: videoSource ? { deviceId: { exact: videoSource } } : true,
-        audio: audioSource ? { deviceId: { exact: audioSource } } : true
-    };
+        audio: {
+          deviceId: deviceId ? { exact: deviceId } : undefined,
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false,
+          channelCount: 2,
+          sampleRate: 48000,
+        }
+      };
+    // Try to get the audio stream from the selected microphone
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    const newTrack = stream.getAudioTracks()[0];
 
-    localStream = await navigator.mediaDevices.getUserMedia(constraints);
+    // Remove old audio tracks
+    localStream.getAudioTracks().forEach(track => {
+        track.stop();
+        localStream.removeTrack(track);
+    });
+
+    // Add the selected microphone track
+    localStream.addTrack(newTrack);
+
+    // Replace outgoing audio track in peerConnection, if any
+    if (peerConnection) {
+        const sender = peerConnection.getSenders().find(s => s.track && s.track.kind === 'audio');
+        await sender.replaceTrack(newTrack);
+        try { if (sender.requestKeyFrame) await sender.requestKeyFrame(); } catch (e) {}
+    }
+}
+
+async function enableMicSelected() {
+    const select = document.getElementById('micSource');
+    const deviceId = select && select.value ? select.value : '';
+    if (!deviceId) {
+        await disableMic();
+    } else {
+        await enableMic(deviceId);
+    }
+    closePopup('micPopup');
+}
+
+
+async function initStreamsWithPlaceholders() {
+    localStream = new MediaStream();
     localVideo.srcObject = localStream;
-    closePopup('devicePopup');
+    
+    remoteStream = new MediaStream();
+    remoteVideo.srcObject = remoteStream;
 }
 
 // Peer Connection Setup
@@ -61,10 +195,18 @@ function createPeerConnection() {
     peerConnection = new RTCPeerConnection({ iceServers });
 
     peerConnection.ontrack = (event) => {
-        if (!remoteVideo.srcObject) {
-            remoteVideo.srcObject = event.streams[0];
-            console.log("video has been set");
+        const kind = event.track.kind;
+        if (kind === 'audio') {
+            remoteVideo.muted = false;
         }
+        remoteStream.getTracks()
+            .filter(t => t.kind === kind)
+            .forEach(t => {
+                remoteStream.removeTrack(t);
+                t.stop();
+            });
+    
+        remoteStream.addTrack(event.track);
     };
 
     iceCandidates = [];
@@ -76,6 +218,45 @@ function createPeerConnection() {
 
     localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
 }
+
+// --- Placeholder track creators ---
+function createSilentAudioTrack() {
+    _placeholderAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    _placeholderOscillator = _placeholderAudioCtx.createOscillator();
+    _placeholderGain = _placeholderAudioCtx.createGain();
+    _placeholderGain.gain.value = 0; // silence
+    _placeholderAudioDest = _placeholderAudioCtx.createMediaStreamDestination();
+    //_placeholderOscillator.connect(_placeholderGain).connect(_placeholderAudioDest);
+    //_placeholderOscillator.start();
+    const track = _placeholderAudioDest.stream.getAudioTracks()[0];
+    //track.stop();
+    return track;
+}
+
+async function createBlackVideoTrack() {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.src = 'no-stream.png';
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            // Use image's natural size, or a fallback
+            canvas.width = img.naturalWidth || 600;
+            canvas.height = img.naturalHeight || 200;
+
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+            const stream = canvas.captureStream(0);
+            const track = stream.getVideoTracks()[0];
+            resolve(track);
+        };
+        img.onerror = function(e) {
+            reject(e);
+        };
+    });
+}
+
+  
 
 // Wait for ICE gathering to complete (non-trickle)
 async function waitForIceGatheringComplete(pc, timeoutMs = 10000) {
@@ -234,3 +415,19 @@ async function drawCoverImage(kind) {
     qrCanvas.height = img.height;
     ctx.drawImage(img, 0, 0);
 }
+
+(async () => {
+    try {
+        initStreamsWithPlaceholders();
+
+        await disableCamera();
+        await disableMic();
+
+        var newTrack = await createBlackVideoTrack();
+        remoteStream.addTrack(newTrack);
+    } catch (e) {
+        console.warn('Failed to init placeholders', e);
+    } finally {
+        console.log('Init complete');
+    }
+})();
