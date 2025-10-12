@@ -4,6 +4,7 @@ let iceCandidates = [];
 const iceServers = [{ urls: "stun:stun.l.google.com:19302" }];
 const localVideo = document.getElementById("localVideo");
 const remoteVideo = document.getElementById("remoteVideo");
+const qrCanvas = document.getElementById("qrCanvas");
 
 // Open Popup
 function openPopup(id) {
@@ -76,85 +77,160 @@ function createPeerConnection() {
     localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
 }
 
+// Wait for ICE gathering to complete (non-trickle)
+async function waitForIceGatheringComplete(pc, timeoutMs = 10000) {
+    if (pc.iceGatheringState === "complete") return;
+    await new Promise((resolve) => {
+        const onChange = () => {
+            if (pc.iceGatheringState === "complete") {
+                pc.removeEventListener("icegatheringstatechange", onChange);
+                resolve();
+            }
+        };
+        pc.addEventListener("icegatheringstatechange", onChange);
+        // Fallback timeout to avoid waiting forever
+        setTimeout(() => {
+            pc.removeEventListener("icegatheringstatechange", onChange);
+            resolve();
+        }, timeoutMs);
+    });
+}
+
 // Create Offer
 async function createOffer() {
     createPeerConnection();
     const offer = await peerConnection.createOffer();
     await peerConnection.setLocalDescription(offer);
-    document.getElementById("signalingBox").value = btoa(JSON.stringify(offer));
-    console.log("offer created");
+
+    // Wait for ICE gathering to finish and send a single bundle (SDP + ICE)
+    await waitForIceGatheringComplete(peerConnection);
+
+    const bundle = {
+        offer: peerConnection.localDescription, // contains type and sdp
+        iceCandidates
+    };
+    await renderStegoFromBundle(bundle, 'offer');
 }
 
 // Create Answer
 async function createAnswer() {
     createPeerConnection();
-    const offer = JSON.parse(atob(document.getElementById("signalingBox").value));
-    await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+    let parsed;
+    try {
+        parsed = await getBundleFromStego();
+    } catch (e) {
+        try {
+            await pasteFromClipboard();
+            parsed = await getBundleFromStego();
+        } catch (e2) {
+            alert('Unable to read remote offer image. Paste the image, then try again.');
+            throw e2;
+        }
+    }
+
+    // Support both new bundle format and legacy plain SDP
+    const remoteOffer = parsed.offer ? parsed.offer : parsed;
+    await peerConnection.setRemoteDescription(new RTCSessionDescription(remoteOffer));
+
+    // If remote provided their ICE candidates in the bundle, add them now
+    if (parsed.iceCandidates && Array.isArray(parsed.iceCandidates)) {
+        for (const candidate of parsed.iceCandidates) {
+            await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+        }
+    }
+
     const answer = await peerConnection.createAnswer();
     await peerConnection.setLocalDescription(answer);
-    document.getElementById("signalingBox").value = btoa(JSON.stringify(answer));
-    console.log("answer created");
+
+    // Wait for local ICE gathering to finish and send a single bundle (SDP + ICE)
+    await waitForIceGatheringComplete(peerConnection);
+
+    const bundle = {
+        answer: peerConnection.localDescription, // contains type and sdp
+        iceCandidates
+    };
+    await renderStegoFromBundle(bundle, 'answer');
 }
 
 // Accept Answer
 async function acceptAnswer() {
-    const answer = JSON.parse(atob(document.getElementById("signalingBox").value));
-    await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
-    console.log("answer accepted");
+    const parsed = await getBundleFromStego();
+
+    // Support both new bundle format and legacy plain SDP
+    const remoteAnswer = parsed.answer ? parsed.answer : parsed;
+    await peerConnection.setRemoteDescription(new RTCSessionDescription(remoteAnswer));
+
+    // If remote provided their ICE candidates in the bundle, add them now
+    if (parsed.iceCandidates && Array.isArray(parsed.iceCandidates)) {
+        for (const candidate of parsed.iceCandidates) {
+            await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+        }
+    }
+
+    console.log("answer accepted (SDP + ICE if provided)");
 }
 
-// Generate ICE Candidates and wait for ICE gathering to complete
-async function generateICEs() {
-    document.getElementById("signalingBox").value = 'Collecting ICEs...';
-
-    // Ensure peer connection is created
-    if (!peerConnection) {
-        console.error("Peer connection is not initialized.");
+// Clipboard Helpers (image only)
+async function copyToClipboard() {
+    if (!qrCanvas.width || !qrCanvas.height) {
+        alert('No image to copy.');
         return;
     }
-
-    // Event listener to detect when ICE gathering completes
-    peerConnection.onicegatheringstatechange = () => {
-        console.log("ICE Gathering State:", peerConnection.iceGatheringState);
-
-        if (peerConnection.iceGatheringState === "complete") {
-            document.getElementById("signalingBox").value = btoa(JSON.stringify(iceCandidates));
-            console.log("All ICE candidates collected.");
-        }
-    };
-
-    console.log("Waiting for ICE candidates...");
-
-    if (peerConnection.iceGatheringState === "complete") {
-        document.getElementById("signalingBox").value = btoa(JSON.stringify(iceCandidates));
-        console.log("All ICE candidates collected.");
-    }
-
-    // Manually check ICE state after 10 seconds as a fallback
-    setTimeout(() => {
-        if (peerConnection.iceGatheringState !== "complete") {
-            console.warn("ICE gathering taking too long, using available candidates.");
-            document.getElementById("signalingBox").value = btoa(JSON.stringify(iceCandidates));
-        }
-    }, 10000);
-}
-
-
-// Accept ICE Candidates
-async function acceptICEs() {
-    const receivedICEs = JSON.parse(atob(document.getElementById("signalingBox").value));
-    receivedICEs.forEach(async candidate => {
-        await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-    });
-    document.getElementById("signalingBox").value
-    console.log("ices added");
-}
-
-// Clipboard Helpers
-function copyToClipboard() {
-    navigator.clipboard.writeText(document.getElementById("signalingBox").value);
+    const blob = await new Promise(resolve => qrCanvas.toBlob(resolve, 'image/png'));
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
 }
 
 async function pasteFromClipboard() {
-    document.getElementById("signalingBox").value = await navigator.clipboard.readText();
+    const items = await navigator.clipboard.read();
+    for (const item of items) {
+        if (item.types.includes('image/png')) {
+            const blob = await item.getType('image/png');
+            await renderImageBlob(blob);
+            return;
+        }
+    }
+    alert('No image found in clipboard.');
+}
+
+async function renderImageBlob(blob) {
+    const img = new Image();
+    img.onload = async () => {
+        const ctx = qrCanvas.getContext('2d');
+        qrCanvas.width = img.width;
+        qrCanvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+    };
+    img.src = URL.createObjectURL(blob);
+}
+
+async function getBundleFromStego() {
+    if (!qrCanvas.width || !qrCanvas.height) throw new Error('Image canvas is empty');
+    try {
+        const bytes = readBytesFromCanvasLSB(qrCanvas);
+        return await bytesToBundle(bytes);
+    } catch (e) {
+        alert('Image does not contain a valid hidden payload. Ensure PNG, not recompressed.');
+        throw e;
+    }
+}
+
+async function renderStegoFromBundle(bundle, kind) {
+    const bytes = await bundleToBytes(bundle);
+    await drawCoverImage(kind);
+    writeBytesToCanvasLSB(qrCanvas, bytes);
+}
+
+async function drawCoverImage(kind) {
+    // Load base image (offer.png / answer.png) and draw to canvas, keeping original size
+    const img = new Image();
+    img.crossOrigin = "anonymous"; // must be set BEFORE setting src
+    img.src = kind === 'answer' ? 'answer.png' : 'offer.png';
+    await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+    });
+    const ctx = qrCanvas.getContext('2d');
+    qrCanvas.width = img.width;
+    qrCanvas.height = img.height;
+    ctx.drawImage(img, 0, 0);
 }

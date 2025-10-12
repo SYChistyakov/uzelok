@@ -40,18 +40,19 @@
     <div id="signalingPopup" class="popup">
         <div class="popup-content">
             <h3>Signaling</h3>
-            <textarea id="signalingBox" placeholder="Paste offer/answer"></textarea>
+            <div id="qrContainer">
+                <canvas id="qrCanvas"></canvas>
+            </div>
             <button onclick="createOffer()">📤 Generate Offer</button>
             <button onclick="createAnswer()">📥 Generate Answer</button>
             <button onclick="acceptAnswer()">🤝 Accept Answer</button>
-            <button onclick="generateICEs()">🧊 Generate ICEs</button>
-            <button onclick="acceptICEs()">🧊 Accept ICEs</button>
             <button onclick="copyToClipboard()">📋 Copy</button>
             <button onclick="pasteFromClipboard()">📥 Paste</button>
             <button onclick="closePopup('signalingPopup')">Close</button>
         </div>
     </div>
 
+    <script src="codec.js"></script>
     <script src="script.js"></script>
 
 </body>
