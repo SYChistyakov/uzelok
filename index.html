@@ -10,6 +10,17 @@
 
 <body>
 
+  <div class="status-bar neon-border">
+    <div class="status-left">
+      <span class="status-dot idle" id="connStatusDot"></span>
+      <span class="status-text idle" id="connStatusText">Idle</span>
+    </div>
+    <div class="status-right">
+      <span>ICE: <strong id="iceStatusText">—</strong></span>
+      <span>Signaling: <strong id="sigStatusText">—</strong></span>
+    </div>
+  </div>
+
   <div class="video-container">
     <video id="localVideo" autoplay playsinline muted></video>
     <video id="remoteVideo" autoplay playsinline muted></video>
@@ -51,12 +62,14 @@
     <div class="popup-content">
       <h3>Signaling</h3>
       <div id="qrContainer">
-        <canvas id="qrCanvas"></canvas>
+        <canvas id="qrCanvas" width="410" height="410"></canvas>
       </div>
       <div class="popup-buttons">
         <button onclick="createOffer()">📤 Generate Offer</button>
         <button onclick="createAnswer()">📥 Generate Answer</button>
         <button onclick="acceptAnswer()">🤝 Accept Answer</button>
+      </div>
+      <div class="popup-buttons">
         <button onclick="copyToClipboard()">📋 Copy</button>
         <button onclick="pasteFromClipboard()">📥 Paste</button>
         <button onclick="closePopup('signalingPopup')">Close</button>

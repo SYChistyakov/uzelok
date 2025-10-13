@@ -16,6 +16,49 @@ body {
   align-items: center;
 }
 
+/* === Top Status Bar === */
+.status-bar {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  background: rgba(15, 15, 25, 0.85);
+  padding: 10px 16px;
+  border-radius: 10px;
+  z-index: 200;
+}
+
+.status-left, .status-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-right span {
+  font-size: 12px;
+  color: #aeefff;
+}
+
+.status-text { font-weight: 700; letter-spacing: 0.5px; }
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  box-shadow: 0 0 8px currentColor;
+}
+
+/* Status colors */
+.status-text.idle, .status-dot.idle { color: #8899aa; }
+.status-text.connecting, .status-dot.connecting { color: #ffd166; }
+.status-text.connected, .status-dot.connected { color: #06d6a0; }
+.status-text.disconnected, .status-dot.disconnected { color: #ef476f; }
+.status-text.failed, .status-dot.failed { color: #ff006e; }
+
 /* === Video Container === */
 .video-container {
   display: flex;
@@ -47,34 +90,73 @@ video:hover {
 
 /* === Floating Controls === */
 .floating-controls {
-  position: fixed;
-  bottom: 30px;
-  display: flex;
-  gap: 20px;
-  z-index: 10;
-}
-
-.fab {
-  width: 60px;
-  height: 60px;
-  background: linear-gradient(135deg, #ff00ff, #00eaff);
-  border: none;
-  border-radius: 50%;
-  font-size: 26px;
-  color: #fff;
-  cursor: pointer;
-  box-shadow:
-    0 0 20px #00eaff,
-    0 0 10px #ff00ff;
-  transition: 0.3s ease-in-out;
-}
-
-.fab:hover {
-  transform: scale(1.15) rotate(10deg);
-  box-shadow:
-    0 0 30px #00ffff,
-    0 0 15px #ff00ff;
-}
+    position: fixed;
+    bottom: 30px;
+    display: flex;
+    gap: 16px;
+    z-index: 10;
+  }
+  
+  /* Neon Rectangular FABs */
+  .fab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 20px;
+    min-width: 120px;
+    height: 50px;
+    border: 1px solid #00eaff;
+    border-radius: 8px;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: #00eaff;
+    background: rgba(10, 15, 25, 0.95);
+    cursor: pointer;
+    box-shadow:
+      0 0 12px #00eaff,
+      0 0 8px #ff00ff inset;
+    transition: all 0.25s ease-in-out;
+    text-shadow: 0 0 6px #00eaff;
+  }
+  
+  /* Hover and Active Effects */
+  .fab:hover {
+    color: #fff;
+    background: linear-gradient(90deg, #00eaff, #ff00ff);
+    box-shadow:
+      0 0 20px #00ffff,
+      0 0 15px #ff00ff,
+      inset 0 0 8px #00ffff;
+    transform: translateY(-3px);
+  }
+  
+  .fab:active {
+    transform: translateY(1px);
+    box-shadow:
+      0 0 10px #00eaff,
+      inset 0 0 5px #ff00ff;
+  }
+  
+  /* Subtle glowing pulse like Signaling buttons */
+  @keyframes neonPulse {
+    from {
+      box-shadow:
+        0 0 12px #00eaff,
+        0 0 6px #ff00ff inset;
+    }
+    to {
+      box-shadow:
+        0 0 18px #ff00ff,
+        0 0 10px #00eaff inset;
+    }
+  }
+  
+  .fab {
+    animation: neonPulse 2s infinite alternate;
+  }
+  
 
 /* === Popup Windows === */
 .popup {
@@ -117,21 +199,48 @@ video:hover {
 }
 
 .popup button {
-  padding: 10px 16px;
-  font-size: 14px;
-  cursor: pointer;
-  background: linear-gradient(90deg, #00eaff, #ff00ff);
-  color: black;
-  border: none;
-  border-radius: 5px;
-  box-shadow: 0 0 10px #00ffff;
-  transition: 0.3s ease-in-out;
-}
-
-.popup button:hover {
-  background: linear-gradient(90deg, #ff00ff, #00eaff);
-  box-shadow: 0 0 20px #ff00ff;
-}
+    position: relative;
+    padding: 12px 24px;
+    font-size: 14px;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #00eaff;
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid #00eaff;
+    border-radius: 10px;
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.25s ease-in-out;
+    box-shadow: 0 0 10px rgba(0, 234, 255, 0.3);
+  }
+  
+  .popup button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 234, 255, 0.3), transparent);
+    transition: all 0.5s ease;
+  }
+  
+  .popup button:hover::before {
+    left: 100%;
+  }
+  
+  .popup button:hover {
+    color: #fff;
+    background: linear-gradient(90deg, #00eaff 0%, #ff00ff 100%);
+    box-shadow: 0 0 25px #00ffff, 0 0 15px #ff00ff;
+    transform: translateY(-2px);
+  }
+  
+  .popup button:active {
+    transform: translateY(1px);
+    box-shadow: 0 0 10px #00ffff, 0 0 5px #ff00ff;
+  }  
 
 /* === Neon Borders === */
 .neon-border {
@@ -139,7 +248,7 @@ video:hover {
   box-shadow:
     0 0 15px #00eaff,
     inset 0 0 10px #ff00ff;
-  animation: pulse-border 2.5s infinite alternate;
+  animation: pulse-border 1s infinite alternate;
 }
 
 @keyframes pulse-border {

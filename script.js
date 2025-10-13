@@ -7,6 +7,38 @@ const localVideo = document.getElementById("localVideo");
 const remoteVideo = document.getElementById("remoteVideo");
 const qrCanvas = document.getElementById("qrCanvas");
 
+// --- Status Elements ---
+const connStatusDot = document.getElementById('connStatusDot');
+const connStatusText = document.getElementById('connStatusText');
+const iceStatusText = document.getElementById('iceStatusText');
+const sigStatusText = document.getElementById('sigStatusText');
+
+function setElementStateClasses(element, states) {
+    if (!element) return;
+    const all = ['idle', 'connecting', 'connected', 'disconnected', 'failed'];
+    all.forEach(c => element.classList.remove(c));
+    states.forEach(s => element.classList.add(s));
+}
+
+function setConnStatus(state, label) {
+    setElementStateClasses(connStatusDot, [state]);
+    setElementStateClasses(connStatusText, [state]);
+    if (connStatusText) connStatusText.textContent = label || state.charAt(0).toUpperCase() + state.slice(1);
+}
+
+function setIceStatus(label) {
+    if (iceStatusText) iceStatusText.textContent = label;
+}
+
+function setSigStatus(label) {
+    if (sigStatusText) sigStatusText.textContent = label;
+}
+
+// Initialize idle
+setConnStatus('idle', 'Idle');
+setIceStatus('—');
+setSigStatus('—');
+
 // Open Popup
 function openPopup(id) {
     document.getElementById(id).style.display = "block";
@@ -194,6 +226,11 @@ async function initStreamsWithPlaceholders() {
 function createPeerConnection() {
     peerConnection = new RTCPeerConnection({ iceServers });
 
+    // Reflect immediate states
+    setConnStatus('connecting', 'Connecting…');
+    setSigStatus(peerConnection.signalingState);
+    setIceStatus(peerConnection.iceGatheringState);
+
     peerConnection.ontrack = (event) => {
         const kind = event.track.kind;
         if (kind === 'audio') {
@@ -214,6 +251,31 @@ function createPeerConnection() {
         if (event.candidate) {
             iceCandidates.push(event.candidate);
         }
+    };
+
+    // Connection state changes
+    peerConnection.onconnectionstatechange = () => {
+        const s = peerConnection.connectionState;
+        if (s === 'connected') setConnStatus('connected', 'Connected');
+        else if (s === 'connecting' || s === 'new') setConnStatus('connecting', 'Connecting…');
+        else if (s === 'disconnected') setConnStatus('disconnected', 'Disconnected');
+        else if (s === 'failed') setConnStatus('failed', 'Failed');
+        else if (s === 'closed') setConnStatus('disconnected', 'Closed');
+    };
+
+    // ICE states
+    peerConnection.onicegatheringstatechange = () => {
+        setIceStatus(peerConnection.iceGatheringState);
+    };
+    peerConnection.oniceconnectionstatechange = () => {
+        // Show ICE connection state briefly as part of ICE status for clarity
+        const iceConn = peerConnection.iceConnectionState;
+        setIceStatus(`${peerConnection.iceGatheringState} / ${iceConn}`);
+    };
+
+    // Signaling state
+    peerConnection.onsignalingstatechange = () => {
+        setSigStatus(peerConnection.signalingState);
     };
 
     localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
@@ -240,8 +302,8 @@ async function createBlackVideoTrack() {
         img.onload = function() {
             const canvas = document.createElement('canvas');
             // Use image's natural size, or a fallback
-            canvas.width = img.naturalWidth || 600;
-            canvas.height = img.naturalHeight || 200;
+            canvas.width = img.naturalWidth || 1024;
+            canvas.height = img.naturalHeight || 1024;
 
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
@@ -280,10 +342,12 @@ async function waitForIceGatheringComplete(pc, timeoutMs = 10000) {
 // Create Offer
 async function createOffer() {
     createPeerConnection();
+    setSigStatus('creating-offer');
     const offer = await peerConnection.createOffer();
     await peerConnection.setLocalDescription(offer);
 
     // Wait for ICE gathering to finish and send a single bundle (SDP + ICE)
+    setIceStatus('gathering');
     await waitForIceGatheringComplete(peerConnection);
 
     const bundle = {
@@ -296,6 +360,7 @@ async function createOffer() {
 // Create Answer
 async function createAnswer() {
     createPeerConnection();
+    setSigStatus('reading-offer');
     let parsed;
     try {
         parsed = await getBundleFromStego();
@@ -320,10 +385,12 @@ async function createAnswer() {
         }
     }
 
+    setSigStatus('creating-answer');
     const answer = await peerConnection.createAnswer();
     await peerConnection.setLocalDescription(answer);
 
     // Wait for local ICE gathering to finish and send a single bundle (SDP + ICE)
+    setIceStatus('gathering');
     await waitForIceGatheringComplete(peerConnection);
 
     const bundle = {
@@ -349,6 +416,7 @@ async function acceptAnswer() {
     }
 
     console.log("answer accepted (SDP + ICE if provided)");
+    setSigStatus(peerConnection.signalingState);
 }
 
 // Clipboard Helpers (image only)
