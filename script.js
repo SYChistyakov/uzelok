@@ -460,6 +460,26 @@ async function pasteFromClipboard() {
     alert('No image found in clipboard.');
 }
 
+async function pasteFromFile() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/png,image/jpeg,image/jpg';
+    input.style.display = 'none';
+    document.body.appendChild(input);
+
+    input.addEventListener('change', async () => {
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            await renderImageBlob(file);
+        }
+        document.body.removeChild(input);
+    });
+
+    // Simulate click to open file dialog
+    input.click();
+}
+
+
 async function renderImageBlob(blob) {
     const img = new Image();
     img.onload = async () => {
