@@ -429,6 +429,25 @@ async function copyToClipboard() {
     await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
 }
 
+// Clipboard Helpers (image only)
+async function shareVia() {
+    if (!qrCanvas.width || !qrCanvas.height) {
+        alert('No image to share.');
+        return;
+    }
+    const blob = await new Promise(resolve => qrCanvas.toBlob(resolve, 'image/png'));
+    if (navigator.canShare && navigator.canShare({ files: [new File([blob], 'webrtc-offer.png', { type: 'image/png' })] })) {
+        const file = new File([blob], 'webrtc-offer.png', { type: 'image/png' });
+        await navigator.share({
+            files: [file],
+            title: 'WebRTC Signal Image',
+            text: 'Scan this image to exchange WebRTC signaling bundle.'
+        });
+    } else {
+        alert('Sharing is not supported on this device/browser.');
+    }
+}
+
 async function pasteFromClipboard() {
     const items = await navigator.clipboard.read();
     for (const item of items) {
@@ -455,33 +474,26 @@ async function renderImageBlob(blob) {
 async function getBundleFromStego() {
     if (!qrCanvas.width || !qrCanvas.height) throw new Error('Image canvas is empty');
     try {
-        const bytes = readBytesFromCanvasLSB(qrCanvas);
-        return await bytesToBundle(bytes);
+        const text = await QRtoText(qrCanvas);
+        return JSON.parse((text || '').trim());
     } catch (e) {
-        alert('Image does not contain a valid hidden payload. Ensure PNG, not recompressed.');
+        alert('Image does not contain a valid multiplexed QR payload.');
         throw e;
     }
 }
 
 async function renderStegoFromBundle(bundle, kind) {
-    const bytes = await bundleToBytes(bundle);
-    await drawCoverImage(kind);
-    writeBytesToCanvasLSB(qrCanvas, bytes);
+    // Encode bundle as text and render multiplexed QR into qrCanvas
+    const text = JSON.stringify(bundle);
+    const out = await textToQR(text);
+    const ctx = qrCanvas.getContext('2d');
+    qrCanvas.width = out.width;
+    qrCanvas.height = out.height;
+    ctx.drawImage(out, 0, 0);
 }
 
 async function drawCoverImage(kind) {
-    // Load base image (offer.png / answer.png) and draw to canvas, keeping original size
-    const img = new Image();
-    img.crossOrigin = "anonymous"; // must be set BEFORE setting src
-    img.src = kind === 'answer' ? 'answer.png' : 'offer.png';
-    await new Promise((resolve, reject) => {
-        img.onload = resolve;
-        img.onerror = reject;
-    });
-    const ctx = qrCanvas.getContext('2d');
-    qrCanvas.width = img.width;
-    qrCanvas.height = img.height;
-    ctx.drawImage(img, 0, 0);
+    // No cover image needed for multiplexed QR; keeping function for compatibility
 }
 
 (async () => {

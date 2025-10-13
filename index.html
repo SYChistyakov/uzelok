@@ -6,6 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>P2P WebRTC Video Chat</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
 </head>
 
 <body>
@@ -71,6 +74,7 @@
       </div>
       <div class="popup-buttons">
         <button onclick="copyToClipboard()">📋 Copy</button>
+        <button onclick="shareVia()">📤 Share via…</button>
         <button onclick="pasteFromClipboard()">📥 Paste</button>
         <button onclick="closePopup('signalingPopup')">Close</button>
       </div>
