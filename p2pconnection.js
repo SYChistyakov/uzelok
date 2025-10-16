@@ -1,3 +1,5 @@
+const iceServers = [{ urls: "stun:stun.l.google.com:19302" }];
+
 class P2PConnection {
   constructor(statusCallback) {
     this.pc = null;
@@ -10,7 +12,7 @@ class P2PConnection {
 
   async _ensurePC() {
     if (!this.pc) {
-      this.pc = new RTCPeerConnection();
+      this.pc = new RTCPeerConnection({ iceServers });
 
       this.pc.ontrack = (event) => {
         console.log('ontrack event:', event);
