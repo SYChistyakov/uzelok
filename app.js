@@ -364,22 +364,32 @@ async function disableScreenShare() {
 async function enableScreenShare() {
   let stream;
   try {
+    // Try to get screen with system audio only; do not fallback to mic
     stream = await navigator.mediaDevices.getDisplayMedia({ 
       video: { 
         width: { ideal: 1280, max: 1280 },
         height: { ideal: 720, max: 720 },
         frameRate: { ideal: 30, max: 30 }
       }, 
-      audio: false 
+      audio: { echoCancellation: false, noiseSuppression: false }
     });
   } catch (err) {
     alert("Unable to capture screen: " + err.message);
     return;
   }
-  const newTrack = stream.getVideoTracks()[0];
-  app.pc.replaceLocalScreenTrack(newTrack);
-  replaceTrackInStream(app.localScreenStream, newTrack);
-  if (newTrack) newTrack.onended = () => disableScreenShare();
+
+  // Replace video track
+  const newVideoTrack = stream.getVideoTracks()[0];
+  app.pc.replaceLocalScreenTrack(newVideoTrack);
+  replaceTrackInStream(app.localScreenStream, newVideoTrack);
+
+  // Replace (or add) audio track (system audio only), if available and method exists
+  if (stream.getAudioTracks && stream.getAudioTracks().length && app.pc.replaceLocalScreenAudioTrack) {
+    app.pc.replaceLocalScreenAudioTrack(stream.getAudioTracks()[0]);
+    replaceTrackInStream(app.localScreenStream, stream.getAudioTracks()[0]);
+  }
+
+  if (newVideoTrack) newVideoTrack.onended = () => disableScreenShare();
 }
 
 init();
