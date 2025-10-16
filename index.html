@@ -121,23 +121,37 @@
       </div>
 
       <div id="camPopup">
-        <div class="popup-content">
-          <h3>Select Camera</h3>
-          <select id="camSource"></select>
-          <div class="popup-buttons">
-            <button onclick="enableCamSelected()">Apply</button>
-            <button onclick="closePopup('camPopup')">Close</button>
+        <div class="window popup-window" role="dialog" aria-label="Select Camera">
+          <div class="title-bar">
+            <div class="title-bar-text">Select Camera</div>
+            <div class="title-bar-controls">
+              <button aria-label="Close" onclick="closePopup('camPopup')"></button>
+            </div>
+          </div>
+          <div class="window-body">
+            <select id="camSource"></select>
+            <div class="popup-buttons">
+              <button onclick="enableCamSelected()">OK</button>
+              <button onclick="closePopup('camPopup')">Cancel</button>
+            </div>
           </div>
         </div>
       </div>
   
       <div id="micPopup">
-        <div class="popup-content">
-          <h3>Select Microphone</h3>
-          <select id="micSource"></select>
-          <div class="popup-buttons">
-            <button onclick="enableMicSelected()">Apply</button>
-            <button onclick="closePopup('micPopup')">Close</button>
+        <div class="window popup-window" role="dialog" aria-label="Select Microphone">
+          <div class="title-bar">
+            <div class="title-bar-text">Select Microphone</div>
+            <div class="title-bar-controls">
+              <button aria-label="Close" onclick="closePopup('micPopup')"></button>
+            </div>
+          </div>
+          <div class="window-body">
+            <select id="micSource"></select>
+            <div class="popup-buttons">
+              <button onclick="enableMicSelected()">OK</button>
+              <button onclick="closePopup('micPopup')">Cancel</button>
+            </div>
           </div>
         </div>
       </div>

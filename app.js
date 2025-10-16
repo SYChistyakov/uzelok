@@ -199,7 +199,7 @@ async function populateMicSelect() {
 
 // Open Popup
 function openPopup(id) {
-  document.getElementById(id).style.display = "block";
+  document.getElementById(id).style.display = "flex";
 }
 
 // Close Popup
@@ -387,7 +387,7 @@ async function enableScreenShare() {
   // Replace (or add) audio track (system audio only), if available and method exists
   if (stream.getAudioTracks && stream.getAudioTracks().length && app.pc.replaceLocalScreenAudioTrack) {
     app.pc.replaceLocalScreenAudioTrack(stream.getAudioTracks()[0]);
-    replaceTrackInStream(app.localScreenStream, stream.getAudioTracks()[0]);
+    //replaceTrackInStream(app.localScreenStream, stream.getAudioTracks()[0]);
   }
 
   if (newVideoTrack) newVideoTrack.onended = () => disableScreenShare();

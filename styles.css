@@ -135,13 +135,8 @@ html, body { height: 100%; overflow: hidden; }
     padding: 16px;
     z-index: 200;
   }
-  .popup-content {
-    width: min(92vw, 400px);
-    background: #fff;
-    border: none;
-    padding: 12px;
-    text-align: left;
-  }
+  .popup-window { width: min(92vw, 420px); }
+  .popup-window .window-body { display: grid; gap: 8px; }
   .popup-content h3 {
     margin: 0 0 8px;
     font-family: 'Ruslan Display', 'Noto Serif', serif;
