@@ -5,7 +5,8 @@ class P2PConnection {
     this.pc = null;
     this.videoTransceiver = null;
     this.audioTransceiver = null;
-    this.screenTransceiver = null;
+    this.screenVideoTransceiver = null;
+    this.screenAudioTransceiver = null;
     this.localCandidates = [];
     this.reportCallback = statusCallback;
   }
@@ -31,7 +32,8 @@ class P2PConnection {
   _initTransceiver() {
     if (!this.pc) throw new Error("PeerConnection is not initialized");
     this.videoTransceiver = this.pc.addTransceiver('video', { direction: 'sendrecv' });
-    this.screenTransceiver = this.pc.addTransceiver('video', { direction: 'sendrecv' });
+    this.screenVideoTransceiver = this.pc.addTransceiver('video', { direction: 'sendrecv' });
+    this.screenAudioTransceiver = this.pc.addTransceiver('audio', { direction: 'sendrecv' });
     this.audioTransceiver = this.pc.addTransceiver('audio', { direction: 'sendrecv' });
   }
 
@@ -82,7 +84,8 @@ class P2PConnection {
     this._initTransceiver();
     this.replaceLocalVideoTrack(black());
     this.replaceLocalAudioTrack(silence());
-    this.replaceLocalScreenTrack(black());
+    this.replaceLocalScreenVideoTrack(black());
+    this.replaceLocalScreenAudioTrack(silence());
 
     const offer = await this.pc.createOffer();
     await this.pc.setLocalDescription(offer);
@@ -127,15 +130,19 @@ class P2PConnection {
         }
       }
       
-      this.videoTransceiver = this.pc.getTransceivers()[0];
-      this.screenTransceiver = this.pc.getTransceivers()[1];
-      this.audioTransceiver = this.pc.getTransceivers()[2];
+      const transceivers = this.pc.getTransceivers();
+      this.videoTransceiver = transceivers[0];
+      this.screenVideoTransceiver = transceivers[1];
+      this.screenAudioTransceiver = transceivers[2];
+      this.audioTransceiver = transceivers[3];
       this.videoTransceiver.direction = "sendrecv";
-      this.screenTransceiver.direction = "sendrecv";
+      this.screenVideoTransceiver.direction = "sendrecv";
+      this.screenAudioTransceiver.direction = "sendrecv";
       this.audioTransceiver.direction = "sendrecv";
       this.replaceLocalVideoTrack(black());
       this.replaceLocalAudioTrack(silence());
-      this.replaceLocalScreenTrack(black());
+      this.replaceLocalScreenVideoTrack(black());
+      this.replaceLocalScreenAudioTrack(silence());
 
       const answer = await this.pc.createAnswer();
       await this.pc.setLocalDescription(answer);
@@ -173,9 +180,16 @@ class P2PConnection {
     this.videoTransceiver.sender.replaceTrack(newTrack);
   }
 
-  replaceLocalScreenTrack(newTrack) {
+  replaceLocalScreenVideoTrack(newTrack) {
     if (!this.pc) return;
-    this.screenTransceiver.sender.replaceTrack(newTrack);
+    if (!this.screenVideoTransceiver) return;
+    this.screenVideoTransceiver.sender.replaceTrack(newTrack);
+  }
+
+  replaceLocalScreenAudioTrack(newTrack) {
+    if (!this.pc) return;
+    if (!this.screenAudioTransceiver) return;
+    this.screenAudioTransceiver.sender.replaceTrack(newTrack);
   }
 
   replaceLocalAudioTrack(newTrack) {
@@ -188,9 +202,16 @@ class P2PConnection {
     this.videoTransceiver.sender.track.stop();
   }
 
-  stopLocalScreenTrack() {
+  stopLocalScreenVideoTrack() {
     if (!this.pc) return;
-    this.screenTransceiver.sender.track.stop();
+    if (!this.screenVideoTransceiver) return;
+    this.screenVideoTransceiver.sender.track.stop();
+  }
+
+  stopLocalScreenAudioTrack() {
+    if (!this.pc) return;
+    if (!this.screenAudioTransceiver) return;
+    this.screenAudioTransceiver.sender.track.stop();
   }
 
   stopLocalAudioTrack() {
@@ -203,9 +224,14 @@ class P2PConnection {
     return this.videoTransceiver.receiver.track;
   }
 
-  getRemoteScreenTrack() {
-    if (!this.screenTransceiver || !this.screenTransceiver.receiver) return null;
-    return this.screenTransceiver.receiver.track;
+  getRemoteScreenVideoTrack() {
+    if (!this.screenVideoTransceiver || !this.screenVideoTransceiver.receiver) return null;
+    return this.screenVideoTransceiver.receiver.track;
+  }
+
+  getRemoteScreenAudioTrack() {
+    if (!this.screenAudioTransceiver || !this.screenAudioTransceiver.receiver) return null;
+    return this.screenAudioTransceiver.receiver.track;
   }
 
   getRemoteAudioTrack() {

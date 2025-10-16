@@ -53,10 +53,11 @@ function statusCallback(status) {
     // Build separate remote streams
     const remoteVideoTrack = app.pc.getRemoteVideoTrack();
     const remoteAudioTrack = app.pc.getRemoteAudioTrack();
-    const remoteScreenTrack = app.pc.getRemoteScreenTrack();
+    const remoteScreenVideoTrack = app.pc.getRemoteScreenVideoTrack();
+    const remoteScreenAudioTrack = app.pc.getRemoteScreenAudioTrack();
     const remoteVideoStream = remoteVideoTrack ? new MediaStream([remoteVideoTrack]) : new MediaStream();
     const remoteAudioStream = remoteAudioTrack ? new MediaStream([remoteAudioTrack]) : new MediaStream();
-    const remoteScreenStream = remoteScreenTrack ? new MediaStream([remoteScreenTrack]) : new MediaStream();
+    const remoteScreenStream = remoteScreenVideoTrack && remoteScreenAudioTrack ? new MediaStream([remoteScreenVideoTrack, remoteScreenAudioTrack]) : new MediaStream();
 
     bindStream(app.localVideoStream, "localVideo");
     bindStream(app.localScreenStream, "localScreen");
@@ -357,7 +358,8 @@ async function enableMicrophone(deviceId) {
 }
 
 async function disableScreenShare() {
-  app.pc.stopLocalScreenTrack();
+  app.pc.stopLocalScreenVideoTrack();
+  app.pc.stopLocalScreenAudioTrack();
   stopAllTracksInStream(app.localScreenStream);
 }
 
@@ -366,12 +368,8 @@ async function enableScreenShare() {
   try {
     // Try to get screen with system audio only; do not fallback to mic
     stream = await navigator.mediaDevices.getDisplayMedia({ 
-      video: { 
-        width: { ideal: 1280, max: 1280 },
-        height: { ideal: 720, max: 720 },
-        frameRate: { ideal: 30, max: 30 }
-      }, 
-      audio: { echoCancellation: false, noiseSuppression: false }
+      video: true, 
+      audio: true
     });
   } catch (err) {
     alert("Unable to capture screen: " + err.message);
@@ -380,7 +378,7 @@ async function enableScreenShare() {
 
   // Replace video track
   const newVideoTrack = stream.getVideoTracks()[0];
-  app.pc.replaceLocalScreenTrack(newVideoTrack);
+  app.pc.replaceLocalScreenVideoTrack(newVideoTrack);
   replaceTrackInStream(app.localScreenStream, newVideoTrack);
 
   // Replace (or add) audio track (system audio only), if available and method exists
