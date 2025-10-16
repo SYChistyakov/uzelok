@@ -26,6 +26,9 @@ async function init() {
   app.pager = new Pager();
   app.pager.showPage('connectPage');
 
+  // Initialize QR canvas with placeholder while generating
+  drawQRPlaceholder('qrCanvas', 'UZEL0K завязывается', '(initializing)');
+
   // Enable double-click fullscreen on tiles (from fullscreen.js)
   if (typeof setupFullscreenHandlers === 'function') {
     setupFullscreenHandlers();
@@ -39,6 +42,39 @@ async function init() {
   console.log("Encoded QR text (pretty):\n" + jsonPrettify(app.bundle));
 
   textToQR(jsonPrettify(app.bundle), 'qrCanvas');
+}
+
+function drawQRPlaceholder(canvasId, line1, line2) {
+  try {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const size = 320; // square placeholder
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, size, size);
+    // Draw semi-transparent white background (30% opacity)
+    ctx.save();
+    ctx.globalAlpha = 0.6;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, size, size);
+    ctx.restore();
+
+    // Draw opaque text over the translucent background
+    ctx.save();
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#000000';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    let fontSize = 18;
+    ctx.font = `bold ${fontSize}px "MS Sans Serif", Tahoma, Verdana, sans-serif`;
+    ctx.fillText(line1 || 'Initializing…', size / 2, size / 2 - 14);
+    ctx.font = `normal ${Math.max(12, fontSize - 4)}px "MS Sans Serif", Tahoma, Verdana, sans-serif`;
+    ctx.fillText(line2 || '', size / 2, size / 2 + 12);
+    ctx.restore();
+  } catch (e) {
+    console.warn('QR placeholder draw failed', e);
+  }
 }
 
 

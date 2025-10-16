@@ -45,7 +45,7 @@ async function textToQR(text, canvasId, centerLabel = 'UZEL0K') {
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       do {
-        ctx.font = `bold ${fontSize}px Tahoma, Verdana, sans-serif`;
+        ctx.font = `bold ${fontSize}px "MS Sans Serif", Tahoma, Verdana, sans-serif`;
         if (ctx.measureText(centerLabel).width <= boxSize * 0.8) break;
         fontSize -= 1;
       } while (fontSize > 8);
