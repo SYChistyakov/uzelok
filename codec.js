@@ -1,4 +1,4 @@
-async function textToQR(text) {
+async function textToQR(text, canvasId) {
     const compressed = compressText(text);
     const chunks = splitIntoThree(compressed);
 
@@ -6,7 +6,7 @@ async function textToQR(text) {
     const [r, g, b] = qrs;
     const w = r.width, h = r.height;
 
-    const out = document.createElement('canvas');
+    const out = document.getElementById(canvasId);
     out.width = w;
     out.height = h;
     const ctx = out.getContext('2d');
@@ -24,12 +24,11 @@ async function textToQR(text) {
     }
 
     ctx.putImageData(outImg, 0, 0);
-
-    return out;
 }
   
   // --- Decode: demultiplex → join → decompress ---
-async function QRtoText(canvas) {
+async function QRtoText(canvasId) {
+    const canvas = document.getElementById(canvasId);
     const ctx = canvas.getContext("2d");
     const { width: w, height: h } = canvas;
     const src = ctx.getImageData(0, 0, w, h).data;
@@ -86,7 +85,7 @@ async function QRtoText(canvas) {
         {
           margin: 1,
           scale: 4,
-          errorCorrectionLevel: "M", // ensure mid fault tolerance
+          errorCorrectionLevel: "H", // ensure mid fault tolerance
           color: { dark: "#000000", light: "#ffffff" },
         },
         (err) => {

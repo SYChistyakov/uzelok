@@ -1,90 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
+  <title>P2P One-Time Call</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>P2P WebRTC Video Chat</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;600;700&family=Ruslan+Display&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
 </head>
-
 <body>
+  <!-- === MAIN CONTAINER === -->
+  <main id="app">
 
-  <div class="status-bar neon-border">
-    <div class="status-left">
-      <span class="status-dot idle" id="connStatusDot"></span>
-      <span class="status-text idle" id="connStatusText">Idle</span>
-    </div>
-    <div class="status-right">
-      <span>ICE: <strong id="iceStatusText">—</strong></span>
-      <span>Signaling: <strong id="sigStatusText">—</strong></span>
-    </div>
-  </div>
+    <!-- === CONNECT PAGE === -->
+    <section id="connectPage" class="page hidden">
+        <canvas id="qrCanvas"></canvas>
+        <div class="qr-buttons">
+          <button id="btnCopyQR" onclick="copyQR()">Copy</button>
+          <button id="btnPasteQR" onclick="pasteQR()">Paste</button>
+        </div>
+    </section>
 
-  <div class="video-container">
-    <video id="localVideo" autoplay playsinline muted></video>
-    <video id="remoteVideo" autoplay playsinline muted></video>
-  </div>
-
-  <!-- Floating Action Buttons -->
-  <div class="floating-controls">
-    <button class="fab" onclick="openCamPopup()">📷</button>
-    <button class="fab" onclick="openMicPopup()">🎤</button>
-    <button class="fab" onclick="openPopup('signalingPopup')">🤝</button>
-  </div>
-
-  <!-- Camera Selection Popup -->
-  <div id="camPopup" class="popup neon-border">
-    <div class="popup-content">
-      <h3>Select Camera</h3>
-      <select id="camSource"></select>
-      <div class="popup-buttons">
-        <button onclick="enableCameraSelected()">Apply</button>
-        <button onclick="closePopup('camPopup')">Close</button>
+    <!-- === CALL PAGE === -->
+    <section id="callPage" class="page hidden">
+      <div class="video-container">
+        <div class="media-tile"><video id="localVideo" autoplay playsinline mute controlsList="nofullscreen"></video></div>
+        <div class="media-tile"><video id="remoteVideo" autoplay playsinline mute></video></div>
+        <div class="media-tile"><video id="localScreen" autoplay playsinline mute></video></div>
+        <div class="media-tile"><video id="remoteScreen" autoplay playsinline mute></video></div>
+        <audio id="remoteAudio" autoplay></audio>
       </div>
-    </div>
-  </div>
 
-  <!-- Microphone Selection Popup -->
-  <div id="micPopup" class="popup neon-border">
-    <div class="popup-content">
-      <h3>Select Microphone</h3>
-      <select id="micSource"></select>
-      <div class="popup-buttons">
-        <button onclick="enableMicSelected()">Apply</button>
-        <button onclick="closePopup('micPopup')">Close</button>
+      <div class="floating-controls">
+        <button id="btnVideo" class="fab" onclick="toggleVideo()" aria-pressed="false">📷</button>
+        <button id="btnAudio" class="fab" onclick="toggleAudio()" aria-pressed="false">🎤</button>
+        <button id="btnScreen" class="fab" onclick="toggleScreen()" aria-pressed="false">🖥️</button>
       </div>
-    </div>
-  </div>
 
-  <!-- Signaling Popup -->
-  <div id="signalingPopup" class="popup neon-border">
-    <div class="popup-content">
-      <h3>Signaling</h3>
-      <div id="qrContainer">
-        <canvas id="qrCanvas" width="410" height="410"></canvas>
+      <div id="camPopup">
+        <div class="popup-content">
+          <h3>Select Camera</h3>
+          <select id="camSource"></select>
+          <div class="popup-buttons">
+            <button onclick="enableCamSelected()">Apply</button>
+            <button onclick="closePopup('camPopup')">Close</button>
+          </div>
+        </div>
       </div>
-      <div class="popup-buttons">
-        <button onclick="createOffer()">📤 Generate Offer</button>
-        <button onclick="createAnswer()">📥 Generate Answer</button>
-        <button onclick="acceptAnswer()">🤝 Accept Answer</button>
+  
+      <div id="micPopup">
+        <div class="popup-content">
+          <h3>Select Microphone</h3>
+          <select id="micSource"></select>
+          <div class="popup-buttons">
+            <button onclick="enableMicSelected()">Apply</button>
+            <button onclick="closePopup('micPopup')">Close</button>
+          </div>
+        </div>
       </div>
-      <div class="popup-buttons">
-        <button onclick="copyToClipboard()">📋 Copy</button>
-        <button onclick="shareVia()">📲 Share</button>
-        <button onclick="pasteFromClipboard()">📥 Paste</button>
-        <button onclick="pasteFromFile()">📁 File</button>
-        <button onclick="closePopup('signalingPopup')">❌</button>
-      </div>
-    </div>
-  </div>
-
-  <script src="codec.js" defer></script>
-  <script src="script.js" defer></script>
-
+    </section>
+  </main>
+  <!-- === JS Orchestrator + Components === -->
+  <script src="pager.js"></script>
+  <script src="blackSilence.js"></script>
+  <script src="p2pconnection.js"></script>
+  <script src="codec.js"></script>
+  <script src="fullscreen.js"></script>
+  <script src="app.js"></script>
 </body>
-
 </html>
