@@ -1,32 +1,10 @@
-:root {
-  /* Warm parchment + ink palette, subtle folk accents */
-  --bg-0: #f7f2e7; /* parchment */
-  --bg-1: #fffaf0; /* lighter parchment */
-  --text: #2b1d14; /* ink */
-  --text-dim: #6e4f3a; /* faded ink */
-  --primary: #b11e2e; /* folk red */
-  --primary-600: #8f1826; /* deeper red */
-  --success: #4b7a4e; /* muted green */
-  --danger: #8f1826; /* reuse deep red */
-  --surface: #fffaf0; /* card */
-  --surface-strong: #fff7e3; /* dialog */
-  --overlay: rgba(43, 29, 20, 0.35);
-  --border: rgba(43, 29, 20, 0.22);
-  --glow: none; /* no neon, keep minimal */
-}
+:root { --overlay: rgba(0, 0, 0, 0.25); }
 
 * { box-sizing: border-box; }
 
-body {
-  font-family: 'Noto Serif', Georgia, 'Times New Roman', serif;
-  background: var(--bg-0);
-  color: var(--text);
-  text-align: center;
-  margin: 0;
-  padding-top: 0; /* status bar hidden */
-}
+body { text-align: center; margin: 0; padding-top: 0; }
 
-html, body { height: 100%; }
+html, body { height: 100%; overflow: hidden; }
   
   /* === Page Visibility === */
   .page.hidden { display: none; }
@@ -38,23 +16,46 @@ html, body { height: 100%; }
     padding: 0;
   }
 
-  .page h2 {
-    margin: 0 0 12px;
-    font-family: 'Ruslan Display', 'Noto Serif', serif;
-    font-weight: 400;
-    letter-spacing: 0.3px;
-    color: var(--primary);
+  /* === Connect splash === */
+  .splash { background: transparent; }
+  .app-window.splash { margin: 0; height: 100dvh; }
+  .app-window.splash.window { border: 0; box-shadow: none; background: transparent; }
+  .splash .title-bar { display: none; }
+  .splash .window-body {
+    display: grid;
+    place-items: center;
+    background: url('clouds.png') center/cover no-repeat;
   }
+  .splash .qr-controls { background: transparent; border: none; padding: 0; border-radius: 0; }
+  .splash #qrCanvas { background: transparent; border: 8px solid #000; padding: 0; border-radius: 0; }
+  .splash .qr-buttons { background: transparent; }
+
+  .page h2 { margin: 0 0 12px; }
   
+  /* === App Window wrapper to position 98.css window === */
+  .app-window {
+    position: relative;
+    margin: 12px;
+    height: calc(100dvh - 24px);
+    display: flex;
+    flex-direction: column;
+  }
+  .app-window .window-body {
+    flex: 1;
+    display: flex;
+    padding: 6px;
+    min-height: 0; /* allow inner grid to shrink within window */
+  }
+
   /* === Video Layout === */
   .video-container {
-    position: fixed;
-    inset: 0;
+    position: relative;
+    flex: 1;
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: 1fr 1fr;
-    gap: 8px; /* space between tiles */
-    padding: 8px; /* margin from window edges */
+    gap: 6px; /* space between tiles inside window */
+    padding: 0;
     box-sizing: border-box;
   }
   .video-container audio { display: none; }
@@ -65,6 +66,9 @@ html, body { height: 100%; }
     min-height: 0;
     overflow: hidden;
   }
+  .tile-window { display: flex; flex-direction: column; }
+  .tile-window .title-bar { flex: 0 0 auto; }
+  .tile-window .tile-body { flex: 1 1 auto; display: flex; padding: 0; min-height: 0; }
   .media-tile video {
     width: 100%;
     height: 100%;
@@ -73,21 +77,20 @@ html, body { height: 100%; }
     display: block;
     border: 0;
     border-radius: 0;
+    max-width: 100%;
+    max-height: 100%;
   }
 
   /* === Window-fill (non-Fullscreen) === */
   body.no-scroll { overflow: hidden; }
-  video.window-fill {
+  .tile-window.window-fill {
     position: fixed;
     inset: 0;
     width: 100vw;
     height: 100vh;
-    object-fit: contain; /* fit by width/height without cropping */
-    object-position: center center;
     z-index: 300; /* above floating controls */
-    background: #000;
-    border: 0;
-    border-radius: 0;
+    display: flex;
+    flex-direction: column;
   }
 
   /* === QR Section === */
@@ -96,20 +99,18 @@ html, body { height: 100%; }
     place-items: center;
     gap: 12px;
     padding: 12px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
+    border: none;
     max-width: 420px;
     margin: 0 auto;
   }
   #qrCanvas {
     width: 100%;
     height: auto;
-    max-width: 320px;
-    background: #fff;
-    border-radius: 6px;
-    padding: 8px;
-    border: 1px solid var(--border);
+    max-width: 540px;
+    background: #000;
+    border-radius: 0px;
+    padding: 0px;
+    border: 10px solid var(--border);
   }
   .qr-buttons {
     display: flex;
@@ -117,50 +118,11 @@ html, body { height: 100%; }
     justify-content: center;
   }
 
-  /* === Buttons === */
-  button {
-    appearance: none;
-    border: 1px solid var(--border);
-    background: transparent;
-    color: var(--text);
-    padding: 8px 14px;
-    border-radius: 6px;
-    font-weight: 600;
-    letter-spacing: 0.3px;
-    cursor: pointer;
-    transition: background-color 120ms ease, border-color 120ms ease;
-  }
-  button:hover { background: rgba(43, 29, 20, 0.06); border-color: rgba(43, 29, 20, 0.35); }
-  button:active { background: rgba(43, 29, 20, 0.1); }
+  /* Use 98.css buttons by default; keep our FAB look minimal */
 
   /* === Floating Controls === */
-  .floating-controls {
-    position: fixed;
-    right: 16px;
-    bottom: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    z-index: 120;
-  }
-  .fab {
-    width: 44px;
-    height: 44px;
-    display: grid;
-    place-items: center;
-    border-radius: 8px;
-    background: var(--surface);
-    color: var(--primary);
-    border: 1px solid var(--border);
-    cursor: pointer;
-    transition: background-color 120ms ease, border-color 120ms ease;
-  }
-  .fab:hover { background: rgba(43, 29, 20, 0.06); border-color: rgba(43, 29, 20, 0.35); }
-  .fab[aria-pressed="true"] {
-    background: var(--primary);
-    color: #fff;
-    border-color: var(--primary-600);
-  }
+  .floating-controls { position: static; display: flex; gap: 8px; }
+  .fab { width: 40px; height: 34px; display: grid; place-items: center; }
 
   /* === Popups === */
   #camPopup, #micPopup {
@@ -175,9 +137,8 @@ html, body { height: 100%; }
   }
   .popup-content {
     width: min(92vw, 400px);
-    background: var(--surface-strong);
-    border: 1px solid var(--border);
-    border-radius: 8px;
+    background: #fff;
+    border: none;
     padding: 12px;
     text-align: left;
   }
@@ -195,11 +156,11 @@ html, body { height: 100%; }
   }
   select {
     width: 100%;
-    padding: 8px 10px;
+    padding: 6px 8px;
     background: #ffffff;
     color: var(--text);
     border: 1px solid var(--border);
-    border-radius: 6px;
+    border-radius: 0;
     outline: none;
   }
 

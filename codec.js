@@ -1,4 +1,4 @@
-async function textToQR(text, canvasId) {
+async function textToQR(text, canvasId, centerLabel = 'UZEL0K') {
     const compressed = compressText(text);
     const chunks = splitIntoThree(compressed);
 
@@ -24,6 +24,34 @@ async function textToQR(text, canvasId) {
     }
 
     ctx.putImageData(outImg, 0, 0);
+
+    // Optional: draw a centered label (logo-like) with high error correction
+    if (centerLabel) {
+      const boxSize = Math.floor(Math.min(w, h) * 0.26); // keep <= ~30% for ECC H
+      const boxX = Math.floor((w - boxSize) / 2);
+      const boxY = Math.floor((h - boxSize) / 2);
+
+      // Draw white box with black border
+      ctx.save();
+      ctx.fillStyle = '#ffffff';
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = Math.max(2, Math.floor(boxSize * 0.03));
+      ctx.fillRect(boxX, boxY, boxSize, boxSize);
+      ctx.strokeRect(boxX, boxY, boxSize, boxSize);
+
+      // Fit text inside the box
+      let fontSize = Math.floor(boxSize * 0.28);
+      ctx.fillStyle = '#000000';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      do {
+        ctx.font = `bold ${fontSize}px Tahoma, Verdana, sans-serif`;
+        if (ctx.measureText(centerLabel).width <= boxSize * 0.8) break;
+        fontSize -= 1;
+      } while (fontSize > 8);
+      ctx.fillText(centerLabel, boxX + boxSize / 2, boxY + boxSize / 2);
+      ctx.restore();
+    }
 }
   
   // --- Decode: demultiplex → join → decompress ---

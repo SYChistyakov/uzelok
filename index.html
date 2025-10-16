@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;600;700&family=Ruslan+Display&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/98.css">
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
@@ -18,27 +19,105 @@
 
     <!-- === CONNECT PAGE === -->
     <section id="connectPage" class="page hidden">
-        <canvas id="qrCanvas"></canvas>
-        <div class="qr-buttons">
-          <button id="btnCopyQR" onclick="copyQR()">Copy</button>
-          <button id="btnPasteQR" onclick="pasteQR()">Paste</button>
+      <div class="window app-window splash">
+        <div class="title-bar">
+          <div class="title-bar-text">Uzelok – Connect</div>
+          <div class="title-bar-controls">
+            <button aria-label="Minimize"></button>
+            <button aria-label="Maximize"></button>
+            <button aria-label="Close"></button>
+          </div>
         </div>
+        <div class="window-body">
+          <div class="qr-controls">
+            <canvas id="qrCanvas"></canvas>
+            <div class="qr-buttons">
+              <button id="btnCopyQR" onclick="copyQR()">Copy</button>
+              <button id="btnPasteQR" onclick="pasteQR()">Paste</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- === CALL PAGE === -->
     <section id="callPage" class="page hidden">
-      <div class="video-container">
-        <div class="media-tile"><video id="localVideo" autoplay playsinline mute controlsList="nofullscreen"></video></div>
-        <div class="media-tile"><video id="remoteVideo" autoplay playsinline mute></video></div>
-        <div class="media-tile"><video id="localScreen" autoplay playsinline mute></video></div>
-        <div class="media-tile"><video id="remoteScreen" autoplay playsinline mute></video></div>
-        <audio id="remoteAudio" autoplay></audio>
-      </div>
-
-      <div class="floating-controls">
-        <button id="btnVideo" class="fab" onclick="toggleVideo()" aria-pressed="false">📷</button>
-        <button id="btnAudio" class="fab" onclick="toggleAudio()" aria-pressed="false">🎤</button>
-        <button id="btnScreen" class="fab" onclick="toggleScreen()" aria-pressed="false">🖥️</button>
+      <div class="window app-window">
+        <div class="title-bar">
+          <div class="title-bar-text">Uzelok</div>
+          <div class="title-bar-controls">
+            <button aria-label="Minimize"></button>
+            <button aria-label="Maximize"></button>
+            <button aria-label="Close"></button>
+          </div>
+        </div>
+        <div class="window-body">
+          <div class="video-container">
+            <div class="media-tile window tile-window">
+              <div class="title-bar">
+                <div class="title-bar-text">your_video.exe</div>
+                <div class="title-bar-controls">
+                  <button aria-label="Minimize"></button>
+                  <button aria-label="Maximize"></button>
+                  <button aria-label="Close"></button>
+                </div>
+              </div>
+              <div class="window-body tile-body">
+                <video id="localVideo" autoplay playsinline mute controlsList="nofullscreen"></video>
+              </div>
+            </div>
+            <div class="media-tile window tile-window">
+              <div class="title-bar">
+                <div class="title-bar-text">remote_video.exe</div>
+                <div class="title-bar-controls">
+                  <button aria-label="Minimize"></button>
+                  <button aria-label="Maximize"></button>
+                  <button aria-label="Close"></button>
+                </div>
+              </div>
+              <div class="window-body tile-body">
+                <video id="remoteVideo" autoplay playsinline mute></video>
+              </div>
+            </div>
+            <div class="media-tile window tile-window">
+              <div class="title-bar">
+                <div class="title-bar-text">your_screen.exe</div>
+                <div class="title-bar-controls">
+                  <button aria-label="Minimize"></button>
+                  <button aria-label="Maximize"></button>
+                  <button aria-label="Close"></button>
+                </div>
+              </div>
+              <div class="window-body tile-body">
+                <video id="localScreen" autoplay playsinline mute></video>
+              </div>
+            </div>
+            <div class="media-tile window tile-window">
+              <div class="title-bar">
+                <div class="title-bar-text">remote_screen.exe</div>
+                <div class="title-bar-controls">
+                  <button aria-label="Minimize"></button>
+                  <button aria-label="Maximize"></button>
+                  <button aria-label="Close"></button>
+                </div>
+              </div>
+              <div class="window-body tile-body">
+                <video id="remoteScreen" autoplay playsinline mute></video>
+              </div>
+            </div>
+            <audio id="remoteAudio" autoplay></audio>
+          </div>
+        </div>
+        <div class="status-bar">
+          <p class="status-bar-field" style="flex:1;text-align:left;">Ready</p>
+          <div class="status-bar-field" style="display:flex;gap:8px;">
+          <div class="floating-controls">
+            <button id="btnVideo" class="fab" onclick="toggleVideo()" aria-pressed="false">📷</button>
+            <button id="btnAudio" class="fab" onclick="toggleAudio()" aria-pressed="false">🎤</button>
+            <button id="btnScreen" class="fab" onclick="toggleScreen()" aria-pressed="false">🖥️</button>
+          </div>
+          </div>
+        </div>
       </div>
 
       <div id="camPopup">
