@@ -364,7 +364,14 @@ async function disableScreenShare() {
 async function enableScreenShare() {
   let stream;
   try {
-    stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+    stream = await navigator.mediaDevices.getDisplayMedia({ 
+      video: { 
+        width: { ideal: 1280, max: 1280 },
+        height: { ideal: 720, max: 720 },
+        frameRate: { ideal: 30, max: 30 }
+      }, 
+      audio: false 
+    });
   } catch (err) {
     alert("Unable to capture screen: " + err.message);
     return;
